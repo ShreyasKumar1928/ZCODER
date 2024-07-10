@@ -1,7 +1,7 @@
 import CircleSkeleton from "@/components/Skeletons/CircleSkeleton";
 import RectangleSkeleton from "@/components/Skeletons/RectangleSkeleton";
 import { auth, firestore } from "@/firebase/firebase";
-import { DBProblem, Problem } from "@/utils/types/problem";
+import { DBProblem } from "@/utils/types/problem";
 import { arrayRemove, arrayUnion, doc, getDoc, runTransaction, updateDoc } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
@@ -16,11 +16,9 @@ type ProblemDescriptionProps = {
 };
 
 const ProblemDescription: React.FC<ProblemDescriptionProps> = ({ problem, _solved }) => {
-	
 	const [user] = useAuthState(auth);
-	const { currentProblem, loading, problemDifficultyClass, setCurrentProblem } = useGetCurrentProblem(problem.id);
-	
-	const { liked, disliked, solved, setData, starred } = useGetUsersDataOnProblem(problem.id);
+	const { currentProblem, loading, problemDifficultyClass, setCurrentProblem } = useGetCurrentProblem(problem?.id);
+	const { liked, disliked, solved, setData, starred } = useGetUsersDataOnProblem(problem?.id);
 	const [updating, setUpdating] = useState(false);
 
 	const returnUserDataAndProblemData = async (transaction: any) => {
@@ -130,6 +128,7 @@ const ProblemDescription: React.FC<ProblemDescriptionProps> = ({ problem, _solve
 		setUpdating(false);
 	};
 
+
 	const handleStar = async () => {
 		if (!user) {
 			toast.error("You must be logged in to star a problem", { position: "top-left", theme: "dark" });
@@ -226,13 +225,13 @@ const ProblemDescription: React.FC<ProblemDescriptionProps> = ({ problem, _solve
 
 						{/* Problem Statement(paragraphs) */}
 						<div className='text-white text-sm'>
-							<div dangerouslySetInnerHTML={{ __html: problem.problemStatement }} />
+							<div dangerouslySetInnerHTML={{ __html: problem?.problemStatement }} />
 						</div>
 
 						{/* Examples */}
 						
-						{/*<div className='mt-4'>
-							{problem.examples.map((example, index) => (
+						<div className='mt-4'>
+							{problem?.examples.map((example, index) => (
 								<div key={example.id}>
 									<p className='font-medium text-white '>Example {index + 1}: </p>
 									{example.img && <img src={example.img} alt='' className='mt-3' />}
@@ -251,13 +250,13 @@ const ProblemDescription: React.FC<ProblemDescriptionProps> = ({ problem, _solve
 									</div>
 								</div>
 							))}
-						</div>*/}
+						</div>
 
 						{/* Constraints */}
 						<div className='my-8 pb-4'>
 							<div className='text-white text-sm font-medium'>Constraints:</div>
 							<ul className='text-white ml-5 list-disc '>
-								<div dangerouslySetInnerHTML={{ __html: problem.constraints }} />
+								<div dangerouslySetInnerHTML={{ __html: problem?.constraints }} />
 							</ul>
 						</div>
 					</div>
@@ -268,7 +267,7 @@ const ProblemDescription: React.FC<ProblemDescriptionProps> = ({ problem, _solve
 };
 export default ProblemDescription;
 
-function useGetCurrentProblem(problemId: string) {
+function useGetCurrentProblem(problemId: string| null) {
 	const [currentProblem, setCurrentProblem] = useState<DBProblem | null>(null);
 	const [loading, setLoading] = useState<boolean>(true);
 	const [problemDifficultyClass, setProblemDifficultyClass] = useState<string>("");
@@ -277,6 +276,7 @@ function useGetCurrentProblem(problemId: string) {
 		// Get problem from DB
 		const getCurrentProblem = async () => {
 			setLoading(true);
+			if(problemId){
 			const docRef = doc(firestore, "problems", problemId);
 			const docSnap = await getDoc(docRef);
 			if (docSnap.exists()) {
@@ -291,6 +291,7 @@ function useGetCurrentProblem(problemId: string) {
 						: " bg-dark-pink text-dark-pink"
 				);
 			}
+		};
 			setLoading(false);
 		};
 		getCurrentProblem();
@@ -336,5 +337,4 @@ function useGetUsersDataOnProblem(problemId: string) {
 	}, [problemId, user]);
   
 	return { ...data, setData };
-  }
-  
+}

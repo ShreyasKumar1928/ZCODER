@@ -37,6 +37,7 @@ const Signup: React.FC<SignupProps> = () => {
 				likedProblems: [],
 				dislikedProblems: [],
 				solvedProblems: [],
+				solutionProblemMap: [],
 				starredProblems: [],
 			};
 			await setDoc(doc(firestore, "users", newUser.user.uid), userData);

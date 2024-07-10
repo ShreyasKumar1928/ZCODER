@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { toast } from 'react-toastify';
 import { doc, setDoc, collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
-import { firestore } from '@/firebase/firebase';
-import { auth } from '@/firebase/firebase'; // Import auth from firebase
+import { firestore, auth } from '@/firebase/firebase'; // Import auth from firebase
 
 type Example = {
   id: string;
@@ -36,8 +35,18 @@ const ProblemForm: React.FC = () => {
     handlerFunction: '',
     likes: 0,
     dislikes: 0,
-    creatorId: '', // Initialize creatorId
+    creatorId: '',
   });
+
+  useEffect(() => {
+    const userId = auth.currentUser?.uid;
+    if (userId) {
+      setInputs((prevInputs) => ({
+        ...prevInputs,
+        creatorId: userId,
+      }));
+    }
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -173,7 +182,6 @@ const ProblemForm: React.FC = () => {
             <option value="hard">Hard</option>
           </select>
         </div>
-      
         <div className="mb-4">
           <label className="block text-white">Video ID</label>
           <input
@@ -212,6 +220,43 @@ const ProblemForm: React.FC = () => {
             onChange={handleInputChange}
             className="w-full px-3 py-2 border rounded"
             rows={3}
+          />
+        </div>
+        {/* Privacy Setting */}
+        <div className="mb-4 col-span-full">
+          <label className="block text-white">Privacy Setting</label>
+          <div className="flex gap-4">
+            <label className="text-white">
+              <input
+                type="radio"
+                name="isPrivate"
+                value="true"
+                checked={inputs.isPrivate === true}
+                onChange={handleInputChange}
+              />
+              Private
+            </label>
+            <label className="text-white">
+              <input
+                type="radio"
+                name="isPrivate"
+                value="false"
+                checked={inputs.isPrivate === false}
+                onChange={handleInputChange}
+              />
+              Public
+            </label>
+          </div>
+        </div>
+        {/* Creator ID - Readonly */}
+        <div className="mb-4 col-span-full">
+          <label className="block text-white">Creator ID</label>
+          <input
+            type="text"
+            name="creatorId"
+            value={inputs.creatorId}
+            readOnly
+            className="w-full px-3 py-2 border rounded bg-gray-200"
           />
         </div>
         {/* Examples */}

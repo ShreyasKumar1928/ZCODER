@@ -36,5 +36,5 @@ export type DBProblem = {
 	starterCode:string;
 	handlerFunction: string;
 	isPrivate:boolean;
-	done:string[];
+	creatorId:string;
 };

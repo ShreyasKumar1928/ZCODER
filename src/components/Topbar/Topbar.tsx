@@ -1,6 +1,6 @@
 // components/Topbar/Topbar.tsx
 
-import { auth } from "@/firebase/firebase";
+import { auth, firestore } from "@/firebase/firebase";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
@@ -12,7 +12,7 @@ import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { BsList } from "react-icons/bs";
 import Timer from "../Timer/timer";
 import { useRouter } from "next/router";
-import { fetchProblems } from "@/utils/problems"; // Assuming fetchProblems is a function that fetches problems from the database
+import { fetchPublicProblems, fetchPrivateProblems } from "@/utils/problems"; // Updated import
 import { DBProblem } from "@/utils/types/problem";
 
 type TopbarProps = {
@@ -23,7 +23,7 @@ const Topbar: React.FC<TopbarProps> = ({ problemPage }) => {
   const [user, loading, error] = useAuthState(auth);
   const setAuthModalState = useSetRecoilState(authModalState);
   const router = useRouter();
-  const [problems, setProblems] = useState<{ [key: string]: DBProblem }>({});
+  const [problems, setProblems] = useState<DBProblem[]>([]);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -36,11 +36,16 @@ const Topbar: React.FC<TopbarProps> = ({ problemPage }) => {
   useEffect(() => {
     const loadProblems = async () => {
       try {
+        const fetchedPublicProblems = await fetchPublicProblems(); // Fetch public problems
+
         const currentUser = auth.currentUser;
         if (currentUser) {
           const userId = currentUser.uid;
-          const fetchedProblems = await fetchProblems(); // Assume fetchProblems fetches and returns the problems
-          setProblems(fetchedProblems);
+          const fetchedPrivateProblems = await fetchPrivateProblems(userId); // Fetch private problems
+
+          // Merge public and private problems into one object
+          const allProblems = { ...fetchedPublicProblems, ...fetchedPrivateProblems };
+          setProblems(allProblems);
         } else {
           console.error("User is not authenticated.");
         }
@@ -48,6 +53,7 @@ const Topbar: React.FC<TopbarProps> = ({ problemPage }) => {
         console.error("Error loading problems:", error);
       }
     };
+
     loadProblems();
   }, []);
 
