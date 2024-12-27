@@ -14,6 +14,8 @@ type Example = {
 
 const ProblemForm: React.FC = () => {
   const router = useRouter();
+
+  // State for problem inputs
   const [inputs, setInputs] = useState({
     id: '',
     title: '',
@@ -38,6 +40,28 @@ const ProblemForm: React.FC = () => {
     creatorId: '',
   });
 
+  // State to track the highest order
+  const [highestOrder, setHighestOrder] = useState(0);
+
+  // Fetch the highest current order value from Firestore on mount
+  useEffect(() => {
+    const fetchHighestOrder = async () => {
+      try {
+        const q = query(collection(firestore, 'problems'), orderBy('order', 'desc'), limit(1));
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+          const latestProblem = querySnapshot.docs[0].data();
+          setHighestOrder(latestProblem.order);
+        }
+      } catch (error) {
+        console.error('Error fetching highest order:', error);
+      }
+    };
+
+    fetchHighestOrder();
+  }, []);
+
+  // Set creator ID when the component loads
   useEffect(() => {
     const userId = auth.currentUser?.uid;
     if (userId) {
@@ -48,9 +72,10 @@ const ProblemForm: React.FC = () => {
     }
   }, []);
 
+  // Handle input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
-  
+
     if (type === 'radio') {
       setInputs({
         ...inputs,
@@ -64,6 +89,7 @@ const ProblemForm: React.FC = () => {
     }
   };
 
+  // Handle example input changes
   const handleExampleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, index: number) => {
     const { name, value } = e.target;
     const updatedExamples = [...inputs.examples];
@@ -77,8 +103,10 @@ const ProblemForm: React.FC = () => {
     });
   };
 
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!inputs.title || !inputs.problemStatement || !inputs.id) {
       toast.error('ID, Title, and Description are required', {
         position: 'top-center',
@@ -89,27 +117,23 @@ const ProblemForm: React.FC = () => {
     }
 
     try {
-      // Fetch the highest current order value from Firestore
-      const q = query(collection(firestore, 'problems'), orderBy('order', 'desc'), limit(1));
-      const querySnapshot = await getDocs(q);
-      let highestOrder = 0;
-      querySnapshot.forEach((doc) => {
-        highestOrder = doc.data().order;
-      });
-
-      // Set the new problem's order value
       const newProblem = {
         ...inputs,
-        order: highestOrder + 1,
-        creatorId: auth.currentUser?.uid, // Update creatorId with current user's UID
+        order: highestOrder + 1, // Assign the next highest order
       };
 
       await setDoc(doc(firestore, 'problems', inputs.id), newProblem);
+
+      // Update the local highest order state
+      setHighestOrder((prevOrder) => prevOrder + 1);
+
       toast.success('Problem added successfully!', {
         position: 'top-center',
         autoClose: 3000,
         theme: 'dark',
       });
+
+      // Redirect to the home page or problem list
       router.push('/');
     } catch (error) {
       toast.error('Failed to add problem. Please try again.', {
@@ -117,7 +141,7 @@ const ProblemForm: React.FC = () => {
         autoClose: 3000,
         theme: 'dark',
       });
-      console.error('Error adding document: ', error);
+      console.error('Error adding document:', error);
     }
   };
 
@@ -129,16 +153,7 @@ const ProblemForm: React.FC = () => {
         style={{ width: '600px', minHeight: '600px' }} // minimum height of 600px
       >
         <h2 className="text-2xl mb-4 text-white col-span-full">Add New Problem</h2>
-        <div className="mb-4 col-span-full">
-          <label className="block text-white">Problem ID</label>
-          <input
-            type="text"
-            name="id"
-            value={inputs.id}
-            onChange={handleInputChange}
-            className="w-full px-3 py-2 border rounded"
-          />
-        </div>
+        
         <div className="mb-4 col-span-full">
           <label className="block text-white">Title</label>
           <input

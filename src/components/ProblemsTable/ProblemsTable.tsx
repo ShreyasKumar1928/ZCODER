@@ -12,13 +12,11 @@ import { DBProblem } from "@/utils/types/problem";
 import { useAuthState } from "react-firebase-hooks/auth";
 
 type ProblemsTableProps = {
-  publicProblems: DBProblem[];
-  privateProblems: DBProblem[];
+  problems: DBProblem[];
 };
 
 const ProblemsTable: React.FC<ProblemsTableProps> = ({
-  publicProblems = [],
-  privateProblems = [],
+  problems = [],
 }) => {
   const [youtubePlayer, setYoutubePlayer] = useState<{
     isOpen: boolean;
@@ -27,18 +25,10 @@ const ProblemsTable: React.FC<ProblemsTableProps> = ({
     isOpen: false,
     videoId: null,
   });
-  const [selectedProblems, setSelectedProblems] = useState<DBProblem[]>([]);
+  
   const [error, setError] = useState<string | null>(null);
   const [solvedProblems, setSolvedProblems] = useState<string[]>([]);
   const [user] = useAuthState(auth);
-
-  useEffect(() => {
-    if (!user) {
-      setSelectedProblems(publicProblems);
-    } else {
-      setSelectedProblems([...publicProblems, ...privateProblems]);
-    }
-  }, [user, publicProblems, privateProblems]);
 
   useEffect(() => {
     if (!user) return;
@@ -81,7 +71,7 @@ const ProblemsTable: React.FC<ProblemsTableProps> = ({
         </div>
       )}
       <tbody className="text-white">
-        {selectedProblems.map((problem, idx) => {
+        {problems.map((problem, idx) => {
           const difficultyColor =
             problem.difficulty === "easy"
               ? "text-dark-green-s"
@@ -92,19 +82,15 @@ const ProblemsTable: React.FC<ProblemsTableProps> = ({
           return (
             <tr
               className={`${idx % 2 === 1 ? "bg-dark-layer-1" : ""}`}
-              key={problem.id}
+              key={problem.title}
             >
               <th className="px-2 py-4 font-medium whitespace-nowrap text-dark-green-s">
-                <BsCheckCircle fontSize={"18"} width="18" />
+              {solvedProblems.includes(problem.title) && <BsCheckCircle fontSize={"18"} width='18' />}
               </th>
               <td className="px-6 py-4">
                 <Link
-                  href={{
-                    pathname: '/problems2/problempage2',
-                    query: { problem: JSON.stringify(problem) },
-                  }}
-                  legacyBehavior
-                >
+                  href={`/problems/${problem.title}`}
+                  >
                   <div className="hover:text-blue-600 cursor-pointer">
                     {idx + 1}. {problem.title}
                   </div>

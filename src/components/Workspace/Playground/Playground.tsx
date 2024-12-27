@@ -5,7 +5,7 @@ import CodeMirror from "@uiw/react-codemirror";
 import { vscodeDark } from "@uiw/codemirror-theme-vscode";
 import { javascript } from "@codemirror/lang-javascript";
 import EditorFooter from "./EditorFooter";
-import { Problem } from "@/utils/types/problem";
+import { DBProblem } from "@/utils/types/problem";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth, firestore } from "@/firebase/firebase";
 import { toast } from "react-toastify";
@@ -13,7 +13,7 @@ import { useRouter } from "next/router";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 
 type PlaygroundProps = {
-  problem: Problem;
+  problem: DBProblem;
   setSuccess: React.Dispatch<React.SetStateAction<boolean>>;
   setSolved: React.Dispatch<React.SetStateAction<boolean>>;
 };
@@ -83,33 +83,41 @@ const Playground: React.FC<PlaygroundProps> = ({ problem, setSuccess, setSolved 
       });
       return;
     }
-
+  
     try {
       // Fetch the current user document
       const userRef = doc(firestore, "users", user.uid);
       const userDoc = await getDoc(userRef);
       let solutionProblemMap = [];
-
+      let solvedProblems = [];
+  
       if (userDoc.exists()) {
         const userData = userDoc.data();
         solutionProblemMap = userData?.solutionProblemMap || [];
+        solvedProblems = userData?.solvedProblems || [];
       }
-
+  
       // Update or add the problem solution
       const updatedSolutionProblemMap = solutionProblemMap.filter((item: any) => item.pid !== pid);
       updatedSolutionProblemMap.push({ pid, code: userCode });
-
-      // Update user's solutionProblemMap in Firestore
+  
+      // Check if the problem title is already in solvedProblems
+      if (!solvedProblems.includes(problem.title)) {
+        solvedProblems.push(problem.title); // Add the problem title
+      }
+  
+      // Update user's solutionProblemMap and solvedProblems in Firestore
       await updateDoc(userRef, {
         solutionProblemMap: updatedSolutionProblemMap,
+        solvedProblems: solvedProblems, // Save updated solvedProblems array
       });
-
+  
       toast.success("Problem solution saved successfully!", {
         position: "top-center",
         autoClose: 3000,
         theme: "dark",
       });
-
+  
       setSuccess(true);
       setTimeout(() => {
         setSuccess(false);
@@ -124,6 +132,7 @@ const Playground: React.FC<PlaygroundProps> = ({ problem, setSuccess, setSolved 
       });
     }
   };
+  
 
   return (
     <div className='flex flex-col bg-dark-layer-1 relative overflow-x-hidden'>

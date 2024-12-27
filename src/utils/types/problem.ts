@@ -7,20 +7,10 @@ export type Example = {
 };
 
 // local problem data
-export type Problem = {
-	id: string;
-	title: string;
-	problemStatement: string;
-	examples: Example[];
-	constraints: string; 
-	order: number;
-	starterCode: string;
-	handlerFunction: ((fn: any) => boolean) | string;
-	starterFunctionName: string;
-};
+
 
 export type DBProblem = {
-	id: string;
+	id:string;
 	title: string;
 	problemStatement: string;
 	category: string;

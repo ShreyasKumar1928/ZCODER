@@ -1,13 +1,13 @@
-import { authModalState } from "@/atoms/authModalAtom";
+import { authModalState } from "@/atoms/AuthModalAtom";
 import { auth } from "@/firebase/firebase";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { useSignInWithEmailAndPassword } from "react-firebase-hooks/auth";
 import { useSetRecoilState } from "recoil";
 import { toast } from "react-toastify";
-type LoginProps = {};
 
-const Login: React.FC<LoginProps> = () => {
+
+const Login: React.FC = () => {
 	const setAuthModalState = useSetRecoilState(authModalState);
 	const handleClick = (type: "login" | "register" | "forgotPassword") => {
 		setAuthModalState((prev) => ({ ...prev, type }));
@@ -25,6 +25,7 @@ const Login: React.FC<LoginProps> = () => {
 		try {
 			const newUser = await signInWithEmailAndPassword(inputs.email, inputs.password);
 			if (!newUser) return;
+
 			router.push("/");
 		} catch (error: any) {
 			toast.error(error.message, { position: "top-center", autoClose: 3000, theme: "dark" });
@@ -34,6 +35,7 @@ const Login: React.FC<LoginProps> = () => {
 	useEffect(() => {
 		if (error) toast.error(error.message, { position: "top-center", autoClose: 3000, theme: "dark" });
 	}, [error]);
+
 	return (
 		<form className='space-y-6 px-6 pb-4' onSubmit={handleLogin}>
 			<h3 className='text-xl font-medium text-white'>Sign in to LeetClone</h3>
