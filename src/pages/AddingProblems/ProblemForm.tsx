@@ -21,7 +21,7 @@ const ProblemForm: React.FC = () => {
     title: '',
     problemStatement: '',
     category: '',
-    difficulty: '',
+    difficulty: 'easy',
     videoId: '',
     link: '',
     constraints: '',
@@ -122,8 +122,8 @@ const ProblemForm: React.FC = () => {
         order: highestOrder + 1, // Assign the next highest order
       };
 
-      await setDoc(doc(firestore, 'problems', inputs.id), newProblem);
-
+      await setDoc(doc(firestore, 'problems', inputs.title), newProblem);
+      
       // Update the local highest order state
       setHighestOrder((prevOrder) => prevOrder + 1);
 
@@ -153,7 +153,16 @@ const ProblemForm: React.FC = () => {
         style={{ width: '600px', minHeight: '600px' }} // minimum height of 600px
       >
         <h2 className="text-2xl mb-4 text-white col-span-full">Add New Problem</h2>
-        
+        <div className="mb-4 col-span-full">
+          <label className="block text-white">ID</label>
+          <input
+            type="text"
+            name="id"
+            value={inputs.id}
+            onChange={handleInputChange}
+            className="w-full px-3 py-2 border rounded"
+          />
+        </div>
         <div className="mb-4 col-span-full">
           <label className="block text-white">Title</label>
           <input

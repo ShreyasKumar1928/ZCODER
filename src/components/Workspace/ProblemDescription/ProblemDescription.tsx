@@ -18,6 +18,7 @@ type ProblemDescriptionProps = {
 const ProblemDescription: React.FC<ProblemDescriptionProps> = ({ problem, _solved }) => {
 	const [user] = useAuthState(auth);
 	const { currentProblem, loading, problemDifficultyClass, setCurrentProblem } = useGetCurrentProblem(problem?.title);
+	
 	const { liked, disliked, solved, setData, starred } = useGetUsersDataOnProblem(problem?.title);
 	const [updating, setUpdating] = useState(false);
 
@@ -271,7 +272,7 @@ function useGetCurrentProblem(problemId: string| null) {
 	const [currentProblem, setCurrentProblem] = useState<DBProblem | null>(null);
 	const [loading, setLoading] = useState<boolean>(true);
 	const [problemDifficultyClass, setProblemDifficultyClass] = useState<string>("");
-
+    
 	useEffect(() => {
 		// Get problem from DB
 		const getCurrentProblem = async () => {
@@ -283,6 +284,7 @@ function useGetCurrentProblem(problemId: string| null) {
 				const problem = docSnap.data();
 				setCurrentProblem({ title: docSnap.id, ...problem } as DBProblem);
 				// easy, medium, hard
+				
 				setProblemDifficultyClass(
 					problem.difficulty === "Easy"
 						? "bg-olive text-olive"
